@@ -15,7 +15,7 @@ from .serializers import (
 import requests
 import json
 from config.settings import OPENROUTER_TOKEN
-
+from rest_framework.permissions import IsAuthenticated
 
 class ShelterListView(generics.ListAPIView):
     queryset = Shelter.objects.all()
@@ -25,12 +25,20 @@ class ShelterListView(generics.ListAPIView):
 class ChatConversationCreateView(generics.CreateAPIView):
     queryset = ChatConversation.objects.all()
     serializer_class = ChatConversationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class ChatMessageCreateView(APIView):
 
     def post(self, request, session_id):
-        conversation = get_object_or_404(ChatConversation, session_id=session_id)
+        conversation = get_object_or_404(
+        ChatConversation,
+        session_id=session_id,
+        user=request.user
+        )
 
         serializer = ChatMessageCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -57,6 +65,7 @@ class ChatMessageCreateView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+    permission_classes = [IsAuthenticated]
 
 
 class ChatMessageListView(generics.ListAPIView):
@@ -64,7 +73,9 @@ class ChatMessageListView(generics.ListAPIView):
 
     def get_queryset(self):
         conversation = get_object_or_404(
-            ChatConversation, session_id=self.kwargs["session_id"]
+        ChatConversation,
+        session_id=session_id,
+        user=request.user
         )
 
         return ChatMessage.objects.filter(conversation=conversation).order_by(

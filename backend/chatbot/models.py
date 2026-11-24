@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from animals.models import Shelter
-
+from django.conf import settings
 
 class ChatConversation(models.Model):
 
@@ -25,6 +25,14 @@ class ChatConversation(models.Model):
         default=uuid.uuid4,
         unique=True,
         editable=False
+    )
+
+    user = models.ForeignKey(
+    settings.AUTH_USER_MODEL,
+    on_delete=models.CASCADE,
+    related_name="chat_conversations",
+    null=True,
+    blank=True
     )
 
     shelter = models.ForeignKey(
