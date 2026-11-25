@@ -26,7 +26,6 @@ class Animal(models.Model):
         
     class Status(models.TextChoices):
         AVAILABLE = "available", "Ищет хозяина"
-        RESERVED = "reserved", "Зарезервировано"
         ADOPTED = "adopted", "Пристроено"
 
     name = models.CharField(max_length=100)
@@ -35,7 +34,7 @@ class Animal(models.Model):
         choices=Species.choices
     )
     breed = models.CharField(max_length=100, blank=True)
-    age = models.PositiveIntegerField(null=True, blank=True)
+    age = models.CharField(max_length=100, blank=True)
     description = models.TextField()
     gender = models.CharField(max_length=20, blank=True)
     status = models.CharField(
