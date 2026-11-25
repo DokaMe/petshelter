@@ -34,7 +34,7 @@ class Animal(models.Model):
         choices=Species.choices
     )
     breed = models.CharField(max_length=100, blank=True)
-    age = models.CharField(max_length=100, blank=True)
+    age = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField()
     gender = models.CharField(max_length=20, blank=True)
     status = models.CharField(
