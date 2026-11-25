@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import transaction
 from rest_framework import serializers
-from rest_framework import serializers
 from animals.serializers import AnimalSerializer
 from .models import GuardianRegistration
 from .models import PersonProfile
@@ -10,16 +9,31 @@ from .models import PersonProfile
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
+        trim_whitespace=False,
         min_length=8
     )
     phone = serializers.CharField(
+        source='profile.phone',
+        max_length=30,
+        required=False,
+        allow_blank=True
+    )
+    city = serializers.CharField(
+        source='profile.city',
+        max_length=100,
+        required=False,
+        allow_blank=True
+    )
+    telegram = serializers.CharField(
+        source='profile.telegram',
+        max_length=100,
         required=False,
         allow_blank=True
     )
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'phone']
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'phone', 'city', 'telegram']
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
@@ -30,19 +44,9 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        phone = validated_data.pop('phone', '')
-
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
-        )
-
-        PersonProfile.objects.create(
-            user=user,
-            phone=phone
-        )
-
+        profile = validated_data.pop('profile', {})
+        user = User.objects.create_user(**validated_data)
+        PersonProfile.objects.create(user=user, **profile)
         return user
 
 
@@ -55,10 +59,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
         source='profile.city',
         read_only=True
     )
+    telegram = serializers.CharField(source='profile.telegram', read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'phone', 'city']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'phone', 'city', 'telegram']
 
 
 

@@ -11,6 +11,7 @@ class Shelter(models.Model):
         return self.name
 
 class Animal(models.Model):
+    MAX_ACTIVE_GUARDIANS = 5
 
     shelter = models.ForeignKey(
     Shelter,
@@ -47,6 +48,8 @@ class Animal(models.Model):
     blank=True,
     null=True
     )
+    bitrix_source_key = models.CharField(max_length=255, unique=True, null=True, blank=True, editable=False)
+    bitrix_photo_id = models.PositiveBigIntegerField(null=True, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

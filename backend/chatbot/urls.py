@@ -1,11 +1,8 @@
 from django.urls import path
-from .views import ShelterListView, ChatConversationCreateView, ChatMessageCreateView
 from .views import (
     ShelterListView,
     ChatConversationCreateView,
-    ChatMessageCreateView,
-    ChatMessageListView,
-    RequestOpenRouter,
+    ChatMessageListCreateView,
 )
 
 urlpatterns = [
@@ -17,13 +14,7 @@ urlpatterns = [
     ),
     path(
         "conversations/<uuid:session_id>/messages/",
-        ChatMessageCreateView.as_view(),
+        ChatMessageListCreateView.as_view(),
         name="message-create",
     ),
-    path(
-    "conversations/<uuid:session_id>/messages/",
-    ChatMessageListView.as_view(),
-    name="chat-messages"
-    ),
-    path("abc", RequestOpenRouter.as_view()),
 ]

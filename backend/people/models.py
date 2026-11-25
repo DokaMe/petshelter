@@ -16,6 +16,7 @@ class PersonProfile(models.Model):
 
     phone = models.CharField(max_length=30, blank=True)
     city = models.CharField(max_length=100, blank=True)
+    telegram = models.CharField(max_length=100, blank=True)
 
     housing_type = models.CharField(
         max_length=50,

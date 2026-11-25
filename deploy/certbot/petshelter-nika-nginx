@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+case " ${RENEWED_DOMAINS:-} " in
+    *" nika.romanenko-coding.ru "*) systemctl reload nginx ;;
+esac

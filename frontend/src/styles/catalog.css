@@ -1,0 +1,158 @@
+body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+}
+
+.site-header {
+    border-bottom: 1px solid var(--line);
+    background: var(--card);
+}
+
+.site-header__inner,
+.site-catalog {
+    width: min(1180px, calc(100% - 32px));
+    margin-inline: auto;
+}
+
+.site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-block: 12px;
+}
+
+.site-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent);
+    text-decoration: none;
+    font: 700 23px Georgia, serif;
+}
+
+.site-brand img {
+    width: 36px;
+    height: 36px;
+    padding: 5px;
+    object-fit: contain;
+    border-radius: 9px;
+    background: var(--button-bg);
+}
+
+.site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.site-nav button,
+.catalog-actions button,
+.subscription-actions button {
+    min-height: 44px;
+    padding: 8px 13px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--card);
+    color: var(--accent);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.site-nav #btnToOpenChat,
+.catalog-actions .catalog-subscribe:not(:disabled),
+.subscription-actions #subscriptionPay {
+    border-color: var(--button-bg);
+    background: var(--button-bg);
+    color: var(--button-text);
+}
+
+.site-catalog {
+    padding-block: 24px 48px;
+}
+
+.site-catalog h1 {
+    margin: 0 0 18px;
+    color: var(--accent);
+    font: 700 clamp(30px, 6vw, 54px)/1.03 Georgia, serif;
+}
+
+#catalogStatus {
+    margin: 0 0 12px;
+    color: var(--muted);
+}
+
+#catalogStatus:empty,
+#subscriptionStatus:empty {
+    display: none;
+}
+
+.site-catalog .pet-list {
+    grid-template-columns: repeat(auto-fill, minmax(min(256px, 100%), 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+.catalog-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 7px;
+}
+
+.catalog-actions button:disabled {
+    border-color: transparent;
+    background: var(--tint);
+    color: var(--muted);
+    cursor: not-allowed;
+}
+
+.adoption-contact {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 8px;
+    background: var(--tint);
+    font-size: 14px;
+    line-height: 1.42;
+}
+
+.adoption-contact span {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted);
+}
+
+#subscriptionDialog {
+    width: min(430px, calc(100% - 28px));
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 0 12px 50px #10251038;
+}
+
+#subscriptionDialog::backdrop {
+    background: #10251078;
+}
+
+#subscriptionDialog h2 {
+    margin: 0;
+    color: var(--accent);
+    font: 700 25px/1.14 Georgia, serif;
+}
+
+#subscriptionDialog p {
+    line-height: 1.5;
+}
+
+.subscription-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+}

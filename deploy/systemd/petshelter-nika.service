@@ -1,0 +1,28 @@
+[Unit]
+Description=Pet Shelter NIKA
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=dasha
+Group=www-data
+WorkingDirectory=/srv/petshelter-nika
+EnvironmentFile=/etc/petshelter-nika.env
+Environment=PYTHONUNBUFFERED=1
+Environment=PATH=/srv/petshelter-nika/tools/node/bin:/usr/local/bin:/usr/bin:/bin
+Environment=npm_config_cache=/srv/petshelter-nika/shared/npm-cache
+RuntimeDirectory=petshelter-nika
+RuntimeDirectoryMode=0750
+UMask=0022
+ExecStartPre=/bin/bash /srv/petshelter-nika/repo/deploy/prepare-release.sh
+ExecStart=/srv/petshelter-nika/current/.venv/bin/gunicorn --chdir /srv/petshelter-nika/current/backend --bind unix:/run/petshelter-nika/gunicorn.sock --umask 7 --workers 2 --timeout 40 --access-logfile - config.wsgi:application
+TimeoutStartSec=300
+Restart=on-failure
+RestartSec=5
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

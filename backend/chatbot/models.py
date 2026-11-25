@@ -8,10 +8,12 @@ class ChatConversation(models.Model):
     class Purpose(models.TextChoices):
         ADOPTION = "adoption", "Забрать домой"
         GUARDIANSHIP = "guardianship", "Опекунство"
+        UNDECIDED = "undecided", "Пока не решили"
 
     class Species(models.TextChoices):
         CAT = "cat", "Кошка"
         DOG = "dog", "Собака"
+        ANY = "any", "Неважно"
 
     class Housing(models.TextChoices):
         APARTMENT = "apartment", "Квартира"
@@ -66,6 +68,8 @@ class ChatConversation(models.Model):
         max_length=20,
         choices=CommunicationStyle.choices
     )
+
+    questionnaire = models.JSONField(null=True, blank=True)
 
     status = models.CharField(
         max_length=30,

@@ -1,35 +1,25 @@
-# React + TypeScript + Vite
+# Полный метч · веб-виджет
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Vite и TypeScript. Приложение открывается на [localhost:3000](http://localhost:3000) и обращается к Django на `http://localhost:8000`.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+npm ci
+npm run dev
+npm run build
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Используйте Node.js 22.12 или новее. При другом адресе Django задайте `VITE_API_URL` в `.env.local`.
+
+| Файл | Назначение |
+| --- | --- |
+| `src/main.ts` | Вход в приложение и переключение между авторизацией, чатом и кабинетом |
+| `src/catalog.ts` | Главный каталог и действия с питомцами |
+| `src/subscription.ts` | Демо-оформление опеки |
+| `src/chat.ts`, `src/chat-window.ts` | Сценарии диалога и управление окном |
+| `src/questionnaire.ts` | Вопросы и правила подбора |
+| `src/auth.ts`, `src/account.ts` | Авторизация и вкладка «Мои подопечные» |
+| `src/pet-card.ts` | Общая карточка питомца |
+| `src/api.ts` | Запросы к Django |
+| `src/styles/`, `public/static/` | Стили и публичные ресурсы |
+
+`npm run build` проверяет типы и собирает сайт в `dist`. Рабочие фотографии животных приходят с бэкенда по адресам `/media/`.

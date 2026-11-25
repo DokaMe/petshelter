@@ -1,0 +1,88 @@
+.pet-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: 12px;
+    align-items: start;
+}
+
+.chatMessage > .pet-card,
+.chatMessage > .pet-list {
+    width: min(100%, 690px);
+    flex: none;
+}
+
+.chatMessage > .pet-card {
+    max-width: 340px;
+}
+
+.pet-card {
+    overflow: hidden;
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: 0 5px 14px #12271009;
+}
+
+.pet-card__photo {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 8.5;
+    object-fit: cover;
+    object-position: center 27%;
+    background: var(--tint);
+}
+
+.pet-card__body {
+    display: grid;
+    gap: 6px;
+    padding: 13px 14px 14px;
+}
+
+.pet-card__body h3 {
+    margin: 0;
+    color: var(--accent);
+    font: 700 22px/1.12 Georgia, serif;
+    overflow-wrap: anywhere;
+}
+
+.pet-card__body p {
+    margin: 0;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.pet-card__meta, .pet-card__shelter {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.pet-card__shelter {
+    font-weight: 650;
+}
+
+.pet-card__description {
+    font-size: 14px;
+    white-space: pre-line;
+}
+
+.pet-card__status {
+    justify-self: start;
+    margin-top: 3px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: var(--tint);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.pet-card__action {
+    justify-self: start;
+    margin-top: 5px;
+}
+
+.guardianships-panel .pet-list {
+    max-width: 930px;
+}

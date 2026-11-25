@@ -2,8 +2,12 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 from animals.models import Shelter
+from animals.serializers import CatalogAnimalSerializer
+from animals.views import catalog_animals
+from .assistant import AssistantUnavailable, answer
 from .models import ChatConversation, ChatMessage
 from .serializers import (
     ShelterSerializer,
@@ -12,9 +16,6 @@ from .serializers import (
     ChatMessageSerializer,
 )
 
-import requests
-import json
-from config.settings import OPENROUTER_TOKEN
 from rest_framework.permissions import IsAuthenticated
 
 class ShelterListView(generics.ListAPIView):
@@ -31,84 +32,51 @@ class ChatConversationCreateView(generics.CreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class ChatMessageCreateView(APIView):
+class ChatMessageListCreateView(generics.ListAPIView):
+    serializer_class = ChatMessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_conversation(self):
+        return get_object_or_404(
+            ChatConversation,
+            session_id=self.kwargs["session_id"],
+            user=self.request.user,
+        )
+
+    def get_queryset(self):
+        return self.get_conversation().messages.all()
 
     def post(self, request, session_id):
-        conversation = get_object_or_404(
-        ChatConversation,
-        session_id=session_id,
-        user=request.user
-        )
-
+        conversation = self.get_conversation()
         serializer = ChatMessageCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        content = serializer.validated_data["content"]
 
-        user_message = ChatMessage.objects.create(
-            conversation=conversation,
-            role=ChatMessage.Role.USER,
-            content=serializer.validated_data["content"],
-        )
+        try:
+            reply = answer(conversation, content)
+        except AssistantUnavailable:
+            return Response(
+                {'error': 'ИИ-помощник сейчас недоступен. Попробуйте ещё раз.'},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
 
-        answer = (
-            "Спасибо за сообщение! Расскажите немного больше "
-            "о том, какого питомца вы хотели бы найти."
-        )
-
-        bot_message = ChatMessage.objects.create(
-            conversation=conversation, role=ChatMessage.Role.ASSISTANT, content=answer
-        )
-
+        with transaction.atomic():
+            user_message = ChatMessage.objects.create(
+                conversation=conversation, role=ChatMessage.Role.USER, content=content
+            )
+            bot_message = ChatMessage.objects.create(
+                conversation=conversation, role=ChatMessage.Role.ASSISTANT, content=reply.text
+            )
+        animals = catalog_animals.in_bulk(reply.animal_ids)
         return Response(
             {
                 "user_message": ChatMessageSerializer(user_message).data,
                 "bot_message": ChatMessageSerializer(bot_message).data,
+                "animals": CatalogAnimalSerializer(
+                    [animals[id_] for id_ in reply.animal_ids if id_ in animals],
+                    many=True,
+                    context={'request': request},
+                ).data,
             },
             status=status.HTTP_201_CREATED,
         )
-    permission_classes = [IsAuthenticated]
-
-
-class ChatMessageListView(generics.ListAPIView):
-    serializer_class = ChatMessageSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        conversation = get_object_or_404(
-            ChatConversation,
-            session_id=self.kwargs["session_id"],
-            user=self.request.user
-        )
-
-        return ChatMessage.objects.filter(
-            conversation=conversation
-        ).order_by("created_at")
-
-
-class RequestOpenRouter(APIView):
-    def get(self, request):
-        # First API call with reasoning
-        response = requests.post(
-            url="https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {OPENROUTER_TOKEN}",
-                "Content-Type": "application/json",
-            },
-            data=json.dumps(
-                {
-                    "model": "deepseek/deepseek-v4.1-flash-1017",
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": "Ты жесткий эксперт в теме как какать, но ты всегда грубишь. Говори только на русском, если увижу хоть 1 английское слово, то партия тебя переплавит и разрабочткне получит миксу рис и кошка жена",
-                        },
-                        {"role": "user", "content": "Как какать?"},
-                    ],
-                    "reasoning": {"enabled": True},
-                }
-            ),
-        )
-
-        # Extract the assistant message with reasoning_details
-        response = response.json()
-        response = response["choices"][0]["message"]
-        print(response)
