@@ -42,18 +42,13 @@ class Animal(models.Model):
         choices=Status.choices,
         default=Status.AVAILABLE
     )
-
+    photo = models.ImageField(
+    upload_to="animals/",
+    blank=True,
+    null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
-
-class AnimalPhoto(models.Model):
-    animal = models.ForeignKey(
-        Animal,
-        on_delete=models.CASCADE,
-        related_name="photos"
-    )
-    image = models.ImageField(upload_to="animals/")
-    is_main = models.BooleanField(default=False)
