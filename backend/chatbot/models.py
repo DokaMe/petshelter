@@ -21,6 +21,12 @@ class ChatConversation(models.Model):
         FRIEND = "friend", "Друг"
         CONSULTANT = "consultant", "Консультант"
 
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Активный"
+        WAITING_OPERATOR = "waiting_operator", "Ожидает оператора"
+        OPERATOR_ACTIVE = "operator_active", "Оператор подключён"
+        CLOSED = "closed", "Завершён"
+
     session_id = models.UUIDField(
         default=uuid.uuid4,
         unique=True,
@@ -61,6 +67,25 @@ class ChatConversation(models.Model):
         choices=CommunicationStyle.choices
     )
 
+    status = models.CharField(
+        max_length=30,
+        choices=Status.choices,
+        default=Status.ACTIVE
+    )
+
+    handoff_reason = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    operator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="operator_conversations"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -72,6 +97,7 @@ class ChatMessage(models.Model):
     class Role(models.TextChoices):
         USER = "user", "Пользователь"
         ASSISTANT = "assistant", "ИИ-помощник"
+        OPERATOR = "operator", "Оператор"
 
     conversation = models.ForeignKey(
         ChatConversation,

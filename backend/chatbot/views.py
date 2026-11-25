@@ -70,17 +70,18 @@ class ChatMessageCreateView(APIView):
 
 class ChatMessageListView(generics.ListAPIView):
     serializer_class = ChatMessageSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         conversation = get_object_or_404(
-        ChatConversation,
-        session_id=session_id,
-        user=request.user
+            ChatConversation,
+            session_id=self.kwargs["session_id"],
+            user=self.request.user
         )
 
-        return ChatMessage.objects.filter(conversation=conversation).order_by(
-            "created_at"
-        )
+        return ChatMessage.objects.filter(
+            conversation=conversation
+        ).order_by("created_at")
 
 
 class RequestOpenRouter(APIView):

@@ -21,9 +21,9 @@ urlpatterns = [
         name="message-create",
     ),
     path(
-        "conversations/<uuid:session_id>/messages/",
-        ChatMessageListView.as_view(),
-        name="message-list",
+    "conversations/<uuid:session_id>/messages/",
+    ChatMessageListView.as_view(),
+    name="chat-messages"
     ),
     path("abc", RequestOpenRouter.as_view()),
 ]
