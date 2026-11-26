@@ -132,6 +132,11 @@ class ConversationMessagesTests(APITestCase):
             image = BytesIO()
             Image.new('RGB', (32, 32), 'orange').save(image, format='PNG')
             cat.photo.save('barsik.png', ContentFile(image.getvalue()))
+            self.client.post(
+                reverse('message-create', args=[conversation.session_id]),
+                {'content': 'Можно ли его забрать?'}, format='json',
+            )
+            self.assertIsInstance(post.call_args.kwargs['json']['messages'][1]['content'], str)
             result = self.client.post(
                 reverse('message-create', args=[conversation.session_id]),
                 {'content': 'Какого он цвета?'}, format='json',

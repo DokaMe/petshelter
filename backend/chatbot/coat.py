@@ -1,6 +1,7 @@
 from base64 import b64encode
 from io import BytesIO
 import logging
+import re
 
 from PIL import Image, ImageOps
 
@@ -15,6 +16,18 @@ COAT_INSTRUCTIONS = (
     'При плохом свете, нескольких животных или если признак не виден, укажи неопределённость. '
     'Не выводи породу, пол или состояние здоровья из окраса.'
 )
+
+COAT_QUERY = re.compile(
+    r'\b(?:окрас\w*|цвет\w*|шерст\w*|маст\w*|расцвет\w*|полосат\w*|пятнист\w*|'
+    r'однотон\w*|тр[её]хцвет\w*|двухцвет\w*|черепахов\w*|табби|рыж\w*|'
+    r'ч[её]рн\w*|бел(?:ый|ая|ое|ые|ого|ую|ых|ыми|ым|ом)|'
+    r'сер(?:ый|ая|ое|ые|ого|ую|ых|ыми|ым|ом|о)|коричнев\w*|золотист\w*|бежев\w*|кремов\w*)\b',
+    re.IGNORECASE,
+)
+
+
+def is_coat_question(text):
+    return bool(COAT_QUERY.search(text))
 
 
 def photo_part(animal):

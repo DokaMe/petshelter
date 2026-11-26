@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db.models import Case, When
 
 from animals.models import Animal
-from .coat import COAT_INSTRUCTIONS, photo_part
+from .coat import COAT_INSTRUCTIONS, is_coat_question, photo_part
 from .openrouter import AssistantUnavailable, complete_json
 from .models import ChatConversation, ChatMessage
 
@@ -74,17 +74,18 @@ def answer(conversation: ChatConversation, prompt: str) -> AssistantReply:
     )
     context_text = json.dumps(context, ensure_ascii=False)
     context_parts = [{'type': 'text', 'text': context_text}]
-    # Prioritize a named pet when only some of the available photos fit in the request.
-    query = prompt.casefold().replace('ё', 'е')
-    ordered = sorted(candidates, key=lambda pet: pet.name.casefold().replace('ё', 'е') not in query)
-    for animal in ordered:
-        if not animal.photo or animal.coat_info[0] or animal.coat_photo_name == animal.photo.name:
-            continue
-        image = photo_part(animal)
-        if image is not None:
-            context_parts.extend([{'type': 'text', 'text': f'Фото питомца с ID {animal.pk}.'}, image])
-            if len(context_parts) == 9:
-                break
+    last_question = next((item['content'] for item in recent if item['role'] == ChatMessage.Role.USER), '')
+    if is_coat_question(prompt) or is_coat_question(last_question):
+        query = prompt.casefold().replace('ё', 'е')
+        ordered = sorted(candidates, key=lambda pet: pet.name.casefold().replace('ё', 'е') not in query)
+        for animal in ordered:
+            if not animal.photo or animal.coat_info[0] or animal.coat_photo_name == animal.photo.name:
+                continue
+            image = photo_part(animal)
+            if image is not None:
+                context_parts.extend([{'type': 'text', 'text': f'Фото питомца с ID {animal.pk}.'}, image])
+                if len(context_parts) == 9:
+                    break
     messages = [
         {'role': 'system', 'content': instructions},
         {'role': 'user', 'content': context_parts if len(context_parts) > 1 else context_text},
