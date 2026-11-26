@@ -34,6 +34,14 @@ export function petCard(animal: Animal, { actions, details }: CardOptions = {}) 
     meta.textContent = [species, animal.age, animal.breed].filter(Boolean).join(' · ');
     body.append(meta);
 
+    if (animal.coat_color) {
+        const coat = document.createElement('p');
+        coat.className = 'pet-card__meta';
+        const source = animal.coat_color_source === 'photo' ? 'Окрас по фото' : 'Окрас';
+        coat.textContent = `${source} · ${animal.coat_color}`;
+        body.append(coat);
+    }
+
     if (animal.shelter_name) {
         const shelter = document.createElement('p');
         shelter.className = 'pet-card__shelter';

@@ -37,6 +37,9 @@ class Animal(models.Model):
     breed = models.CharField(max_length=100, blank=True)
     age = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField()
+    coat_color = models.CharField('Окрас от приюта', max_length=160, blank=True)
+    photo_coat = models.CharField(max_length=160, blank=True, editable=False)
+    coat_photo_name = models.CharField(max_length=100, blank=True, editable=False)
     gender = models.CharField(max_length=20, blank=True)
     status = models.CharField(
         max_length=20,
@@ -51,6 +54,14 @@ class Animal(models.Model):
     bitrix_source_key = models.CharField(max_length=255, unique=True, null=True, blank=True, editable=False)
     bitrix_photo_id = models.PositiveBigIntegerField(null=True, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def coat_info(self):
+        if self.coat_color.strip():
+            return self.coat_color.strip(), 'shelter'
+        if self.photo and self.coat_photo_name == self.photo.name and self.photo_coat:
+            return self.photo_coat, 'photo'
+        return '', None
 
     def __str__(self):
         return self.name

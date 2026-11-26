@@ -25,12 +25,22 @@ class ChatConversationSerializer(serializers.ModelSerializer):
     def get_assistant_enabled(self, conversation):
         return bool(settings.OPENROUTER_TOKEN)
 
+    def validate(self, attrs):
+        animal = attrs.get('selected_animal')
+        if animal and (
+            animal.shelter_id != attrs['shelter'].id
+            or attrs['species'] not in (ChatConversation.Species.ANY, animal.species)
+        ):
+            raise serializers.ValidationError({'selected_animal': 'Выберите питомца из этого приюта и вида.'})
+        return attrs
+
     class Meta:
         model = ChatConversation
         fields = [
             'id',
             'session_id',
             'shelter',
+            'selected_animal',
             'purpose',
             'species',
             'housing',

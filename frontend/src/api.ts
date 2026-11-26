@@ -27,6 +27,8 @@ export interface Animal {
     age: string | null;
     description: string;
     gender: string;
+    coat_color: string;
+    coat_color_source: 'shelter' | 'photo' | null;
     status: 'available' | 'adopted';
     photo: string | null;
 }
@@ -43,6 +45,7 @@ export interface Guardianship {
 }
 
 export interface ConversationInput {
+    selected_animal?: number;
     shelter: number;
     purpose: 'adoption' | 'guardianship' | 'undecided';
     species: Animal['species'] | 'any';

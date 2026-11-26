@@ -1,7 +1,12 @@
+from io import BytesIO, StringIO
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
+from django.core.management import call_command
 from django.test import override_settings
+from PIL import Image
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
@@ -74,11 +79,13 @@ class ConversationMessagesTests(APITestCase):
         self.assertIn('какого питомца ты ищешь', sent.data['bot_message']['content'])
 
     @override_settings(OPENROUTER_TOKEN='test-key')
-    @patch('chatbot.assistant.requests.post')
+    @patch('chatbot.openrouter.requests.post')
     def test_assistant_receives_catalog_and_returns_only_known_pets(self, post):
         user = get_user_model().objects.create_user(username='reader')
         shelter = Shelter.objects.create(name='Test shelter', city='Test city')
-        cat = Animal.objects.create(name='Барсик', species=Animal.Species.CAT, shelter=shelter)
+        cat = Animal.objects.create(
+            name='Барсик', species=Animal.Species.CAT, shelter=shelter, coat_color='серый полосатый',
+        )
         dog = Animal.objects.create(name='Амир', species=Animal.Species.DOG, shelter=shelter)
         conversation = ChatConversation.objects.create(
             user=user, shelter=shelter, purpose=ChatConversation.Purpose.ADOPTION,
@@ -103,3 +110,48 @@ class ConversationMessagesTests(APITestCase):
         self.assertIn('на ты', instructions['content'])
         self.assertIn('Барсик', context['content'])
         self.assertNotIn('Амир', context['content'])
+        self.assertIn('серый полосатый', context['content'])
+        self.assertEqual(result.data['animals'][0]['coat_color_source'], 'shelter')
+
+    @override_settings(OPENROUTER_TOKEN='test-key')
+    @patch('chatbot.openrouter.requests.post')
+    def test_selected_pet_and_current_photo_are_sent_to_openrouter(self, post):
+        user = get_user_model().objects.create_user(username='photo-reader')
+        shelter = Shelter.objects.create(name='Test shelter')
+        cat = Animal.objects.create(name='Барсик', species='cat', shelter=shelter)
+        conversation = ChatConversation.objects.create(
+            user=user, shelter=shelter, purpose='adoption', species='any', housing='apartment',
+            communication_style='consultant', selected_animal=cat,
+        )
+        self.client.force_authenticate(user)
+        post.return_value.status_code = 200
+        post.return_value.json.return_value = {
+            'choices': [{'message': {'content': '{"answer":"По фото кот рыжий.","animal_ids":[]}'}}],
+        }
+        with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            image = BytesIO()
+            Image.new('RGB', (32, 32), 'orange').save(image, format='PNG')
+            cat.photo.save('barsik.png', ContentFile(image.getvalue()))
+            result = self.client.post(
+                reverse('message-create', args=[conversation.session_id]),
+                {'content': 'Какого он цвета?'}, format='json',
+            )
+            self.assertEqual(result.status_code, 201)
+            messages = post.call_args.kwargs['json']['messages']
+            parts = messages[1]['content']
+            self.assertIn(f'"selected_animal_id": {cat.pk}', parts[0]['text'])
+            self.assertIn(f'ID {cat.pk}', parts[1]['text'])
+            self.assertTrue(parts[2]['image_url']['url'].startswith('data:image/jpeg;base64,'))
+            self.assertEqual(messages[-1]['content'], 'Какого он цвета?')
+
+            post.return_value.json.return_value = {
+                'choices': [{'message': {'content': '{"coat_color":"рыжий"}'}}],
+            }
+            call_command('detect_animal_coats', stdout=StringIO())
+            cat.refresh_from_db()
+            self.assertEqual(cat.coat_info, ('рыжий', 'photo'))
+            post.reset_mock()
+            call_command('detect_animal_coats', stdout=StringIO())
+            post.assert_not_called()
+            cat.photo.save('new-barsik.png', ContentFile(image.getvalue()))
+            self.assertEqual(cat.coat_info, ('', None))

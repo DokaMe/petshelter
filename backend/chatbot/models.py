@@ -49,6 +49,14 @@ class ChatConversation(models.Model):
         related_name="conversations"
     )
 
+    selected_animal = models.ForeignKey(
+        'animals.Animal',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+    )
+
     purpose = models.CharField(
         max_length=20,
         choices=Purpose.choices

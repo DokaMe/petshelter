@@ -346,6 +346,7 @@ async function openPetConversation(animal: Animal, shelter: Shelter, signal: Abo
         shelter: shelter.id,
         purpose,
         species: animal.species,
+        selected_animal: animal.id,
         housing,
         communication_style: communicationStyle,
     }));
