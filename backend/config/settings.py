@@ -11,24 +11,30 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR.parent / '.env')
 load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', 'false').lower() in ('1', 'true')
+local_management = os.getenv('PET_SHELTER_LOCAL_MANAGEMENT') == '1'
+DEBUG = os.getenv('DJANGO_DEBUG', 'true' if local_management else 'false').lower() in ('1', 'true')
 
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]').split(',')
+
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', '').strip()
+if not SECRET_KEY:
+    if not (local_management and DEBUG and set(ALLOWED_HOSTS) <= {'localhost', '127.0.0.1', '[::1]'}):
+        raise ImproperlyConfigured('Задайте DJANGO_SECRET_KEY для запуска Django вне локальной разработки.')
+    SECRET_KEY = 'django-insecure-pet-shelter-local-development-only-key'
 
 
 # Application definition
@@ -156,6 +162,8 @@ REST_FRAMEWORK = {
     ),
 }
 
-OPENROUTER_TOKEN = os.getenv('OPENROUTER_TOKEN', '').strip()
+OPENROUTER_TOKEN = os.getenv('OPENROUTER_TOKEN', '').strip() or os.getenv('OPENROUTER_API_KEY', '').strip()
 
-OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL') or 'openai/gpt-4.1-mini'
+DEEPSEEK_VISION_MODEL = 'deepseek/deepseek-v4.1-flash-1017'
+OPENROUTER_MODEL = os.getenv('OPENROUTER_MODEL', '').strip() or DEEPSEEK_VISION_MODEL
+OPENROUTER_VISION_MODEL = os.getenv('OPENROUTER_VISION_MODEL', '').strip() or DEEPSEEK_VISION_MODEL

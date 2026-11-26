@@ -3,6 +3,7 @@ from io import BytesIO
 import logging
 import re
 
+from django.conf import settings
 from PIL import Image, ImageOps
 
 from .openrouter import AssistantUnavailable, complete_json
@@ -60,7 +61,7 @@ def classify_photo(photo):
             ),
         },
         {'role': 'user', 'content': [{'type': 'text', 'text': 'Определи окрас по фото.'}, photo]},
-    ], max_tokens=100, temperature=0)
+    ], model=settings.OPENROUTER_VISION_MODEL, max_tokens=160, temperature=0)
     color = data.get('coat_color')
     if 'coat_color' not in data or (color is not None and not isinstance(color, str)):
         raise AssistantUnavailable

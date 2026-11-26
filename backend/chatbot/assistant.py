@@ -86,13 +86,15 @@ def answer(conversation: ChatConversation, prompt: str) -> AssistantReply:
                 context_parts.extend([{'type': 'text', 'text': f'Фото питомца с ID {animal.pk}.'}, image])
                 if len(context_parts) == 9:
                     break
+    with_photos = len(context_parts) > 1
+    model = settings.OPENROUTER_VISION_MODEL if with_photos else settings.OPENROUTER_MODEL
     messages = [
-        {'role': 'system', 'content': instructions},
-        {'role': 'user', 'content': context_parts if len(context_parts) > 1 else context_text},
+        {'role': 'system', 'content': f'{instructions} При вопросе о текущей модели укажи {model}.'},
+        {'role': 'user', 'content': context_parts if with_photos else context_text},
         *[{'role': item['role'], 'content': item['content'][:1500]} for item in reversed(recent)],
         {'role': 'user', 'content': prompt},
     ]
-    result = complete_json(messages, max_tokens=550, temperature=0.3)
+    result = complete_json(messages, model=model, max_tokens=550, temperature=0.3)
     text = result.get('answer')
     ids = result.get('animal_ids')
     if not isinstance(text, str) or not text.strip() or not isinstance(ids, list):

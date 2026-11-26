@@ -113,7 +113,7 @@ class ConversationMessagesTests(APITestCase):
         self.assertIn('серый полосатый', context['content'])
         self.assertEqual(result.data['animals'][0]['coat_color_source'], 'shelter')
 
-    @override_settings(OPENROUTER_TOKEN='test-key')
+    @override_settings(OPENROUTER_TOKEN='test-key', OPENROUTER_MODEL='test/text', OPENROUTER_VISION_MODEL='test/vision')
     @patch('chatbot.openrouter.requests.post')
     def test_selected_pet_and_current_photo_are_sent_to_openrouter(self, post):
         user = get_user_model().objects.create_user(username='photo-reader')
@@ -137,12 +137,14 @@ class ConversationMessagesTests(APITestCase):
                 {'content': 'Можно ли его забрать?'}, format='json',
             )
             self.assertIsInstance(post.call_args.kwargs['json']['messages'][1]['content'], str)
+            self.assertEqual(post.call_args.kwargs['json']['model'], 'test/text')
             result = self.client.post(
                 reverse('message-create', args=[conversation.session_id]),
                 {'content': 'Какого он цвета?'}, format='json',
             )
             self.assertEqual(result.status_code, 201)
             messages = post.call_args.kwargs['json']['messages']
+            self.assertEqual(post.call_args.kwargs['json']['model'], 'test/vision')
             parts = messages[1]['content']
             self.assertIn(f'"selected_animal_id": {cat.pk}', parts[0]['text'])
             self.assertIn(f'ID {cat.pk}', parts[1]['text'])
@@ -153,6 +155,7 @@ class ConversationMessagesTests(APITestCase):
                 'choices': [{'message': {'content': '{"coat_color":"рыжий"}'}}],
             }
             call_command('detect_animal_coats', stdout=StringIO())
+            self.assertEqual(post.call_args.kwargs['json']['model'], 'test/vision')
             cat.refresh_from_db()
             self.assertEqual(cat.coat_info, ('рыжий', 'photo'))
             post.reset_mock()

@@ -17,7 +17,7 @@
 - Затем идут до десяти последних реплик диалога, от старой к новой.
 - Последнее сообщение с ролью `user` содержит сам вопрос пользователя.
 
-[backend/chatbot/openrouter.py](../chatbot/openrouter.py) отправляет этот массив в OpenRouter. Модель задаёт `OPENROUTER_MODEL`, ключ остаётся на сервере. Модель должна поддерживать изображения для анализа фото. По умолчанию используется `openai/gpt-4.1-mini`. [Документация OpenRouter по входным изображениям](https://openrouter.ai/docs/guides/overview/multimodal/image-understanding)
+[backend/chatbot/openrouter.py](../chatbot/openrouter.py) отправляет этот массив в OpenRouter. Для текстовых запросов используется `OPENROUTER_MODEL`, для запросов с фотографиями и команды анализа — `OPENROUTER_VISION_MODEL`. По умолчанию используется `deepseek/deepseek-v4.1-flash-1017`. При смене модели для фото проверьте её поддержку изображений. [Документация OpenRouter по входным изображениям](https://openrouter.ai/docs/guides/overview/multimodal/image-understanding)
 
 ## Какие инструкции получает бот
 

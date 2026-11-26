@@ -20,6 +20,15 @@ test -f backend/.env || cp backend/.env.example backend/.env
 .venv/bin/python backend/manage.py runserver localhost:8000
 ```
 
+Если виртуальное окружение уже установлено на Windows, запустите команды из корня проекта в PowerShell.
+
+```powershell
+.\.venv\Scripts\python.exe backend\manage.py migrate
+.\.venv\Scripts\python.exe backend\manage.py runserver
+```
+
+Для локального `manage.py` доступен ключ разработки. `DJANGO_SECRET_KEY` нужен Django для подписи сессий и других данных приложения. На сервере задайте собственный ключ в окружении.
+
 Во втором терминале из папки проекта запустите фронтенд на Node.js 22.12+.
 
 ```sh
@@ -45,7 +54,7 @@ npm run dev
 
 ## ИИ-помощник
 
-В `backend/.env` задайте `OPENROUTER_TOKEN`. Модель меняется переменной `OPENROUTER_MODEL`, по умолчанию используется `openai/gpt-4.1-mini`. Перезапустите Django после изменения `.env`. Помощник получает выбранный тон, ответы анкеты, последние сообщения и данные доступных питомцев из выбранного приюта. Рекомендованные карточки показываются из Django. [Как собирается промпт и определяется окрас](backend/docs/AI_ASSISTANT.md)
+Задайте `OPENROUTER_TOKEN` или `OPENROUTER_API_KEY` в `.env` в корне проекта или в `backend/.env`. Сначала Django читает переменные процесса, затем файл в корне проекта и после него файл в `backend`. Модель для текста задаёт `OPENROUTER_MODEL`, для фото — `OPENROUTER_VISION_MODEL`. По умолчанию обе используют `deepseek/deepseek-v4.1-flash-1017`. После изменения настроек перезапустите Django. [Как собирается промпт и определяется окрас](backend/docs/AI_ASSISTANT.md)
 
 Демо-фото Барсика лежит в `backend/media/animals/demo-barsik.png`. Запрос для встроенного ImageGen:
 
